@@ -308,5 +308,49 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     )
 
 })
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+    const coverImageLocalPath = req.file?.path;
+    
+    if (!coverImageLocalPath) {
+        throw new ApiError(400, "Avatar file is required")
+    }
+    console.log(req.user._id);
+    const user = await User.findById(req.user._id)
+    
+    if (!user) {
+        throw new ApiError(400, "User doesn't exists")
+    }
 
-export { userRegister, login, logout, refreshAccessToken, updateUserAvatar }
+    const deleteCoverImage = await deleteOnCloudinary(user.coverImagePublicId)
+    // console.log("deletecoverImage :", deletecoverImage);
+    if (!deleteCoverImage) {
+        throw new ApiError(500, "Failed to delete the old coverImage image")
+    }
+
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+
+    if (!coverImage) {
+        throw new ApiError(400, "coverImage file is required")
+    }
+
+    const newUpdatedUser = await User.findByIdAndUpdate(req.user?._id, {
+        $set: {
+            coverImage: coverImage.url,
+            coverImagePublicId: coverImage.public_id
+        }
+    },
+    {
+        new: true
+    }).select(
+    "-password"
+    )
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, newUpdatedUser, "Avatar image updated successfully")
+    )
+
+})
+
+export { userRegister, login, logout, refreshAccessToken, updateUserAvatar, updateUserCoverImage }
