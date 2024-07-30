@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken"
-import { asyncHandler } from "../utils/asynHandler"
-import { User } from "../models/user.model"
+import { asyncHandler } from "../utils/asynHandler.js"
+import { User } from "../models/user.model.js"
 
 export const jwtVerify = asyncHandler ( async (req, _, next) => {
     const token = req.cookies?.accessToken || req.headers.authorization?.split(' ')[1]
@@ -11,7 +11,7 @@ export const jwtVerify = asyncHandler ( async (req, _, next) => {
 
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
 
-    const user = User.findById(decodedToken?._id).select(
+    const user = await User.findById(decodedToken?._id).select(
         "-password -refreshToken"
     )
 

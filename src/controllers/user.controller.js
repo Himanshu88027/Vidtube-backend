@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/asynHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinaryService.js";
+import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinaryService.js";
 import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async (user_id) => {
@@ -62,7 +62,9 @@ const userRegister = asyncHandler(async (req, res) => {
         email,
         password,
         avatar: avatar.url,
+        avatarPublicId: avatar.public_id,
         coverImage: coverImage?.url || "",
+        coverImagePublicId: coverImage?.public_id || "",
     })
 
     const createdUser = await User.findById(user._id).select(
@@ -99,9 +101,9 @@ const login = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Incorrect password")
     }
 
-    const { accessToken, refreshToken } = generateAccessAndRefreshToken(user._id);
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
 
-    const loggedUser = User.findById(user._id).select(
+    const loggedUser = await User.findById(user._id).select(
         "-password -refreshToken"
     )
 
@@ -262,4 +264,49 @@ const updateUser = asyncHandler(async (req, res) => {
    .json(new ApiResponse(200, user, "Account details updated successfully"))
 })
 
-export { userRegister, login, logout, refreshAccessToken }
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.file?.path;
+    
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar file is required")
+    }
+    console.log(req.user._id);
+    const user = await User.findById(req.user._id)
+    
+    if (!user) {
+        throw new ApiError(400, "User doesn't exists")
+    }
+
+    const deleteAvatar = await deleteOnCloudinary(user.avatarPublicId)
+    console.log("deleteAvatar :", deleteAvatar);
+    if (!deleteAvatar) {
+        throw new ApiError(500, "Failed to delete the old avatar image")
+    }
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+
+    if (!avatar) {
+        throw new ApiError(400, "Avatar file is required")
+    }
+
+    const newUpdatedUser = await User.findByIdAndUpdate(req.user?._id, {
+        $set: {
+            avatar: avatar.url,
+            avatarPublicId: avatar.public_id
+        }
+    },
+    {
+        new: true
+    }).select(
+    "-password"
+    )
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, newUpdatedUser, "Avatar image updated successfully")
+    )
+
+})
+
+export { userRegister, login, logout, refreshAccessToken, updateUserAvatar }
