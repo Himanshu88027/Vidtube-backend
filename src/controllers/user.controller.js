@@ -189,4 +189,34 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 })
 
+const forgotPassword = asyncHandler(async (req, res) => {
+    const {currentPassword, newPassword} = req.body;
+    
+    if (!currentPassword ||!newPassword) {
+        throw new ApiError(400, "Please enter current password and new password")
+    }
+    
+    const user = await User.findById(req.user._id);
+    
+    if (!user) {
+        throw new ApiError(400, "User doesn't exists")
+    }
+
+    const isPasswordValid = await user.comparePassword(currentPassword)
+    
+    if (!isPasswordValid) {
+        throw new ApiError(400, "Incorrect current password")
+    }
+    
+    user.password = newPassword;
+    await user.save({validateBeforesave: false});
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, {}, "Password updated successfully")
+    )
+})
+
+
 export { userRegister, login, logout, refreshAccessToken }
