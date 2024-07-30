@@ -1,4 +1,4 @@
-import { jwt } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import { asyncHandler } from "../utils/asynHandler"
 import { User } from "../models/user.model"
 
