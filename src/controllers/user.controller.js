@@ -361,7 +361,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Username is required")
     }
 
-    const channel = await User.aggregate[
+    const channel = await User.aggregate([
         {
             $match: {
                 username: username?.toLowerCase()
@@ -413,7 +413,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
             }
         }
 
-    ]
+    ])
 
     if (!channel?.length) {
         throw new ApiError(404, "User not found")
@@ -426,5 +426,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         )
 
 })
+
+
 
 export { userRegister, login, logout, refreshAccessToken, forgotPassword, getCurrentUser, updateUser, updateUserAvatar, updateUserCoverImage, getUserChannelProfile }
