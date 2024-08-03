@@ -12,7 +12,7 @@ const generateAccessAndRefreshToken = async (user_id) => {
 
         const accessToken = user.generateAccessToken();
         const refreshToken = user.generateRefreshToken();
-
+        console.log("genertddddddddddddddddddd", refreshToken);
         user.refreshToken = refreshToken;
         await user.save({ validateBeforesave: false });
 
@@ -151,13 +151,14 @@ const logout = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
-
     if (!incomingRefreshToken) {
         throw new ApiError(401, "Refresh token is required")
     }
 
     try {
         const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+
+        console.log("decoded token", decodedToken);
 
         if (!decodedToken) {
             throw new ApiError(401, "Invalid refresh token")
@@ -169,20 +170,19 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Invalid refresh token")
         }
 
-        const { accessToken, newRefreshToken } = generateAccessAndRefreshToken(user._id);
-
+        const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
         const options = {
             httpOnly: true,
             secure: true
         }
 
-        res
+        return res
             .status(200)
             .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newRefreshToken, options)
+            .cookie("refreshToken", refreshToken, options)
             .json(
                 new ApiResponse(200,
-                    { accessToken, newRefreshToken },
+                    { accessToken, refreshToken },
                     "Access token refreshed successfully"
                 )
             )
