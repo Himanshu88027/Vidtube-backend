@@ -149,7 +149,6 @@ const logout = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "User logged Out"))
 })
 
-
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
@@ -482,4 +481,16 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     )
 })
 
-export { userRegister, login, logout, refreshAccessToken, forgotPassword, getCurrentUser, updateUser, updateUserAvatar, updateUserCoverImage, getUserChannelProfile, getWatchHistory }
+export { 
+    userRegister, 
+    login, 
+    logout, 
+    refreshAccessToken, 
+    forgotPassword, 
+    getCurrentUser, 
+    updateUser, 
+    updateUserAvatar, 
+    updateUserCoverImage, 
+    getUserChannelProfile, 
+    getWatchHistory 
+}
