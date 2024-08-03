@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken"
 import { asyncHandler } from "../utils/asynHandler.js"
 import { User } from "../models/user.model.js"
+import { ApiError } from "../utils/ApiError.js"
 
 export const jwtVerify = asyncHandler ( async (req, _, next) => {
     const token = req.cookies?.accessToken || req.headers.authorization?.split(' ')[1]
